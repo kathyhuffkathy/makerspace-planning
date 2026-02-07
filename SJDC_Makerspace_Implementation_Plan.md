@@ -5,7 +5,7 @@ Target completion: **August 2026**
 Owners:
 - **Kathy** — Project Manager (PM)
 - **Martha** — Curriculum Lead
-- **Eric** — Maintainer (equipment/space)
+- **Educator** — Maintainer (equipment/space)
 
 Primary constraint:
 - Makerspace includes multiple machines; **maximum occupancy 30**; operations require **instructional support staff** for safe use.
@@ -25,10 +25,10 @@ Primary constraint:
 ## 2) Governance + Roles
 
 - [ ] Confirm decision/approval path (who approves: safety rules, curriculum, space changes, purchases)
-- [ ] Confirm role responsibilities
-  - [ ] Kathy (PM): timeline, meeting cadence, risk log, approvals coordination, tracking
-  - [ ] Martha (Curriculum): unit design, lesson materials, assessments, training content
-  - [ ] Eric (Maintainer): equipment readiness, installation needs, maintenance plan, inspections
+  - [ ] Confirm role responsibilities
+    - [ ] Kathy (PM): timeline, meeting cadence, risk log, approvals coordination, tracking
+    - [ ] Martha (Curriculum): unit design, lesson materials, assessments, training content
+    - [ ] Educator (Maintainer): equipment readiness, installation needs, maintenance plan, inspections
 - [ ] Set meeting cadence
   - [ ] Weekly: execution check-in (30–45 minutes)
   - [ ] Monthly: milestone review (status, risks, staffing, equipment, incidents)
@@ -191,8 +191,8 @@ Use this as the master schedule; adjust dates as needed while keeping the August
 | Milestone | Owner(s) | Target Date |
 |---|---|---:|
 | Plan finalized (this document) | Kathy | Aug 2026 |
-| Safety handbook + baseline procedures ready | Martha + Eric | <Date> |
-| Equipment inventory + readiness gap list complete | Eric | <Date> |
+| Safety handbook + baseline procedures ready | Martha + Educator | <Date> |
+| Equipment inventory + readiness gap list complete | Educator | <Date> |
 | Unit 1 complete + piloted (most thorough) | Martha | <Date> |
 | Units 2–3 live | Martha | <Date> |
 | Units 4–6 live | Martha | <Date> |
@@ -236,7 +236,7 @@ Status options: `Not started` / `Draft` / `Pilot` / `Live`
 |---|---|---|---|---|
 | Occupancy exceeds safe supervision | High | Medium | Enforce max 30, set ratios by activity, schedule high-risk activities | Kathy |
 | Insufficient instructional support staff | High | Medium | Coverage plan, cross-train staff, adjust operating modes/hours | Kathy |
-| Equipment downtime blocks units | Medium | Medium | Maintenance schedule, consumables minimums, readiness checks | Eric |
+| Equipment downtime blocks units | Medium | Medium | Maintenance schedule, consumables minimums, readiness checks | Educator |
 | Inconsistent safety onboarding | High | Medium | Required onboarding + sign-off tracking before machine use | Martha |
 
 ---
