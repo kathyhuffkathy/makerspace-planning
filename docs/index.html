@@ -228,7 +228,7 @@
 <ul>
 <li><strong>Kathy</strong> — Project Manager (PM)</li>
 <li><strong>Martha</strong> — Curriculum Lead</li>
-<li><strong>Educator</strong> — Maintainer (equipment/space)</li>
+<li><strong>Eric</strong> — Maintainer (equipment/space)</li>
 </ul>
 <p>Primary constraint:</p>
 <ul>
@@ -250,7 +250,7 @@
 <li><input disabled="" type="checkbox"> Confirm role responsibilities<ul>
 <li><input disabled="" type="checkbox"> Kathy (PM): timeline, meeting cadence, risk log, approvals coordination, tracking</li>
 <li><input disabled="" type="checkbox"> Martha (Curriculum): unit design, lesson materials, assessments, training content</li>
-<li><input disabled="" type="checkbox"> Educator (Maintainer): equipment readiness, installation needs, maintenance plan, inspections</li>
+<li><input disabled="" type="checkbox"> Eric (Maintainer): equipment readiness, installation needs, maintenance plan, inspections</li>
 </ul>
 </li>
 <li><input disabled="" type="checkbox"> Set meeting cadence<ul>
@@ -446,12 +446,12 @@
 </tr>
 <tr>
 <td>Safety handbook + baseline procedures ready</td>
-<td>Martha + Educator</td>
+<td>Martha + Eric</td>
 <td align="right"><Date></td>
 </tr>
 <tr>
 <td>Equipment inventory + readiness gap list complete</td>
-<td>Educator</td>
+<td>Eric</td>
 <td align="right"><Date></td>
 </tr>
 <tr>
@@ -602,7 +602,7 @@
 <td>Medium</td>
 <td>Medium</td>
 <td>Maintenance schedule, consumables minimums, readiness checks</td>
-<td>Educator</td>
+<td>Eric</td>
 </tr>
 <tr>
 <td>Inconsistent safety onboarding</td>
@@ -653,7 +653,7 @@ Target completion: **August 2026**
 Owners:
 - **Kathy** — Project Manager (PM)
 - **Martha** — Curriculum Lead
-- **Educator** — Maintainer (equipment/space)
+- **Eric** — Maintainer (equipment/space)
 
 Primary constraint:
 - Makerspace includes multiple machines; **maximum occupancy 30**; operations require **instructional support staff** for safe use.
@@ -676,7 +676,7 @@ Primary constraint:
 - [ ] Confirm role responsibilities
   - [ ] Kathy (PM): timeline, meeting cadence, risk log, approvals coordination, tracking
   - [ ] Martha (Curriculum): unit design, lesson materials, assessments, training content
-  - [ ] Educator (Maintainer): equipment readiness, installation needs, maintenance plan, inspections
+  - [ ] Eric (Maintainer): equipment readiness, installation needs, maintenance plan, inspections
 - [ ] Set meeting cadence
   - [ ] Weekly: execution check-in (30–45 minutes)
   - [ ] Monthly: milestone review (status, risks, staffing, equipment, incidents)
@@ -839,8 +839,8 @@ Use this as the master schedule; adjust dates as needed while keeping the August
 | Milestone | Owner(s) | Target Date |
 |---|---|---:|
 | Plan finalized (this document) | Kathy | Aug 2026 |
-| Safety handbook + baseline procedures ready | Martha + Educator | &lt;Date&gt; |
-| Equipment inventory + readiness gap list complete | Educator | &lt;Date&gt; |
+| Safety handbook + baseline procedures ready | Martha + Eric | &lt;Date&gt; |
+| Equipment inventory + readiness gap list complete | Eric | &lt;Date&gt; |
 | Unit 1 complete + piloted (most thorough) | Martha | &lt;Date&gt; |
 | Units 2–3 live | Martha | &lt;Date&gt; |
 | Units 4–6 live | Martha | &lt;Date&gt; |
@@ -884,7 +884,7 @@ Status options: `Not started` / `Draft` / `Pilot` / `Live`
 |---|---|---|---|---|
 | Occupancy exceeds safe supervision | High | Medium | Enforce max 30, set ratios by activity, schedule high-risk activities | Kathy |
 | Insufficient instructional support staff | High | Medium | Coverage plan, cross-train staff, adjust operating modes/hours | Kathy |
-| Equipment downtime blocks units | Medium | Medium | Maintenance schedule, consumables minimums, readiness checks | Educator |
+| Equipment downtime blocks units | Medium | Medium | Maintenance schedule, consumables minimums, readiness checks | Eric |
 | Inconsistent safety onboarding | High | Medium | Required onboarding + sign-off tracking before machine use | Martha |
 
 ---
@@ -919,7 +919,9 @@ Status options: `Not started` / `Draft` / `Pilot` / `Live`
     <script>
       (function () {
         var mdHash = "20fb1c4c";
-        var storageKey = "SJDC_Makerspace_Implementation_Plan:checkboxes:" + mdHash;
+        var storagePrefix = "SJDC_Makerspace_Implementation_Plan:checkboxes:";
+        var storageKey = storagePrefix + mdHash;
+        var lastHashKey = "SJDC_Makerspace_Implementation_Plan:lastHash";
 
         function slugify(text) {
           return String(text)
@@ -943,6 +945,52 @@ Status options: `Not started` / `Draft` / `Pilot` / `Live`
         function saveState(state) {
           try {
             localStorage.setItem(storageKey, JSON.stringify(state));
+          } catch (_) {}
+        }
+
+        function migrateStateIfNeeded() {
+          try {
+            var prevHash = localStorage.getItem(lastHashKey);
+            if (prevHash && prevHash !== mdHash) {
+              var prevKey = storagePrefix + prevHash;
+              var prevRaw = localStorage.getItem(prevKey);
+              if (prevRaw && !localStorage.getItem(storageKey)) {
+                localStorage.setItem(storageKey, prevRaw);
+              }
+              try { localStorage.removeItem(prevKey); } catch (_) {}
+            }
+
+            // Fallback: merge any other stored checkbox state(s) for this plan.
+            var merged = false;
+            var current = null;
+            try { current = JSON.parse(localStorage.getItem(storageKey) || "null"); } catch (_) { current = null; }
+            if (!current || typeof current !== "object") current = {};
+
+            for (var i = 0; i < localStorage.length; i++) {
+              var k = localStorage.key(i);
+              if (!k || k === storageKey) continue;
+              if (k.indexOf(storagePrefix) !== 0) continue;
+
+              try {
+                var other = JSON.parse(localStorage.getItem(k) || "null");
+                if (other && typeof other === "object") {
+                  for (var t in other) {
+                    if (Object.prototype.hasOwnProperty.call(other, t) && current[t] === undefined) {
+                      current[t] = other[t];
+                      merged = true;
+                    }
+                  }
+                }
+              } catch (_) {}
+
+              try { localStorage.removeItem(k); } catch (_) {}
+            }
+
+            if (merged) {
+              localStorage.setItem(storageKey, JSON.stringify(current));
+            }
+
+            localStorage.setItem(lastHashKey, mdHash);
           } catch (_) {}
         }
 
@@ -975,6 +1023,7 @@ Status options: `Not started` / `Draft` / `Pilot` / `Live`
         })();
 
         // Enable task list checkboxes rendered by marked
+        migrateStateIfNeeded();
         var state = loadState();
         var boxes = content.querySelectorAll("input[type=checkbox]");
         var taskIndex = 0;

@@ -331,7 +331,9 @@ ${rendered}
     <script>
       (function () {
         var mdHash = ${JSON.stringify(mdHash)};
-        var storageKey = "SJDC_Makerspace_Implementation_Plan:checkboxes:" + mdHash;
+        var storagePrefix = "SJDC_Makerspace_Implementation_Plan:checkboxes:";
+        var storageKey = storagePrefix + mdHash;
+        var lastHashKey = "SJDC_Makerspace_Implementation_Plan:lastHash";
 
         function slugify(text) {
           return String(text)
@@ -355,6 +357,52 @@ ${rendered}
         function saveState(state) {
           try {
             localStorage.setItem(storageKey, JSON.stringify(state));
+          } catch (_) {}
+        }
+
+        function migrateStateIfNeeded() {
+          try {
+            var prevHash = localStorage.getItem(lastHashKey);
+            if (prevHash && prevHash !== mdHash) {
+              var prevKey = storagePrefix + prevHash;
+              var prevRaw = localStorage.getItem(prevKey);
+              if (prevRaw && !localStorage.getItem(storageKey)) {
+                localStorage.setItem(storageKey, prevRaw);
+              }
+              try { localStorage.removeItem(prevKey); } catch (_) {}
+            }
+
+            // Fallback: merge any other stored checkbox state(s) for this plan.
+            var merged = false;
+            var current = null;
+            try { current = JSON.parse(localStorage.getItem(storageKey) || "null"); } catch (_) { current = null; }
+            if (!current || typeof current !== "object") current = {};
+
+            for (var i = 0; i < localStorage.length; i++) {
+              var k = localStorage.key(i);
+              if (!k || k === storageKey) continue;
+              if (k.indexOf(storagePrefix) !== 0) continue;
+
+              try {
+                var other = JSON.parse(localStorage.getItem(k) || "null");
+                if (other && typeof other === "object") {
+                  for (var t in other) {
+                    if (Object.prototype.hasOwnProperty.call(other, t) && current[t] === undefined) {
+                      current[t] = other[t];
+                      merged = true;
+                    }
+                  }
+                }
+              } catch (_) {}
+
+              try { localStorage.removeItem(k); } catch (_) {}
+            }
+
+            if (merged) {
+              localStorage.setItem(storageKey, JSON.stringify(current));
+            }
+
+            localStorage.setItem(lastHashKey, mdHash);
           } catch (_) {}
         }
 
@@ -387,6 +435,7 @@ ${rendered}
         })();
 
         // Enable task list checkboxes rendered by marked
+        migrateStateIfNeeded();
         var state = loadState();
         var boxes = content.querySelectorAll("input[type=checkbox]");
         var taskIndex = 0;
