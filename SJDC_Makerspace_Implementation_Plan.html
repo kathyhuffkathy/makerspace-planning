@@ -1,0 +1,1040 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SJDC Makerspace - Implementation Plan</title>
+    <style>
+      :root {
+        --bg: #f6f3ee;
+        --paper: #ffffff;
+        --ink: #1f2328;
+        --muted: #5b6672;
+        --rule: #e5e0d8;
+        --accent: #0b4f6c;
+        --shadow: 0 18px 50px rgba(0, 0, 0, 0.10);
+        --radius: 14px;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(1100px 600px at 12% -10%, rgba(11, 79, 108, 0.16), transparent 60%),
+          radial-gradient(900px 540px at 90% 0%, rgba(163, 75, 42, 0.12), transparent 55%),
+          var(--bg);
+        font-family: Georgia, "Times New Roman", Times, serif;
+        line-height: 1.55;
+      }
+
+      a { color: var(--accent); text-decoration-thickness: 0.08em; text-underline-offset: 0.18em; }
+      a:hover { text-decoration-thickness: 0.14em; }
+
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 24px 16px 56px;
+      }
+
+      .topbar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        margin: 8px 0 14px;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: 0.02em;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      }
+
+      .meta {
+        margin: 3px 0 0;
+        font-size: 12px;
+        color: var(--muted);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      button {
+        border: 1px solid rgba(31, 35, 40, 0.18);
+        background: rgba(255, 255, 255, 0.68);
+        color: var(--ink);
+        padding: 8px 10px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        backdrop-filter: blur(8px);
+      }
+
+      button:hover { border-color: rgba(31, 35, 40, 0.35); }
+      button:active { transform: translateY(1px); }
+
+      .card {
+        background: var(--paper);
+        border: 1px solid rgba(31, 35, 40, 0.10);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .content {
+        padding: 28px 28px 34px;
+      }
+
+      .content > :first-child { margin-top: 0; }
+      .content h1 { font-size: 34px; margin: 0 0 10px; letter-spacing: -0.02em; }
+      .content h2 { font-size: 22px; margin: 26px 0 10px; }
+      .content h3 { font-size: 18px; margin: 20px 0 8px; }
+      .content hr { border: 0; border-top: 1px solid var(--rule); margin: 20px 0; }
+      .content p { margin: 10px 0; }
+      .content ul, .content ol { margin: 10px 0 12px 24px; padding: 0; }
+      .content li { margin: 6px 0; }
+      .content code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 0.92em;
+        background: #f4f6f8;
+        padding: 0.12em 0.32em;
+        border-radius: 6px;
+        border: 1px solid rgba(31, 35, 40, 0.10);
+      }
+      .content pre code {
+        display: block;
+        padding: 12px 14px;
+        overflow: auto;
+      }
+      .content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12px 0 16px;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        font-size: 13px;
+      }
+      .content th, .content td {
+        border: 1px solid rgba(31, 35, 40, 0.14);
+        padding: 8px 10px;
+        vertical-align: top;
+      }
+      .content th {
+        background: rgba(31, 35, 40, 0.04);
+        text-align: left;
+      }
+
+      /* Task list / checkboxes */
+      .content input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        vertical-align: -2px;
+        margin-right: 8px;
+        accent-color: var(--accent);
+      }
+      .content li.task-item { list-style: none; margin-left: -20px; }
+      .content li.task-item > label { cursor: pointer; }
+      .content li.task-item.checked > label {
+        color: var(--muted);
+        text-decoration: line-through;
+        text-decoration-thickness: 0.08em;
+      }
+
+      .heading-anchor {
+        margin-left: 8px;
+        font-size: 0.9em;
+        opacity: 0.55;
+        text-decoration: none;
+      }
+      .heading-anchor:hover { opacity: 1; }
+
+      .footer {
+        padding: 14px 28px;
+        border-top: 1px solid var(--rule);
+        display: flex;
+        gap: 10px;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--muted);
+        font-size: 12px;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      }
+
+      details {
+        margin-top: 14px;
+      }
+      details > summary {
+        cursor: pointer;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        color: var(--accent);
+      }
+      pre.md {
+        margin: 10px 0 0;
+        padding: 14px 16px;
+        border: 1px solid rgba(31, 35, 40, 0.12);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.85);
+        overflow: auto;
+        white-space: pre-wrap;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      @media (max-width: 680px) {
+        .content { padding: 20px 16px 26px; }
+        .footer { padding: 12px 16px; }
+        .content h1 { font-size: 28px; }
+      }
+
+      @media print {
+        body { background: #fff; }
+        .wrap { padding: 0; }
+        .topbar, .actions, details { display: none !important; }
+        .card { box-shadow: none; border: 0; border-radius: 0; }
+        .content { padding: 0; }
+        a { color: #000; text-decoration: none; }
+        .heading-anchor { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          <h1>SJDC Makerspace - Implementation Plan</h1>
+          <p class="meta">Standalone (offline) HTML. Checkmarks save to this browser.</p>
+        </div>
+        <div class="actions">
+          <button type="button" id="print">Print</button>
+          <button type="button" id="reset">Reset checkmarks</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="content" id="content">
+<h1>SJDC Makerspace — Implementation Plan (Units 1–9)</h1>
+<p>Target completion: <strong>August 2026</strong></p>
+<p>Owners:</p>
+<ul>
+<li><strong>Kathy</strong> — Project Manager (PM)</li>
+<li><strong>Martha</strong> — Curriculum Lead</li>
+<li><strong>Eric</strong> — Maintainer (equipment/space)</li>
+</ul>
+<p>Primary constraint:</p>
+<ul>
+<li>Makerspace includes multiple machines; <strong>maximum occupancy 30</strong>; operations require <strong>instructional support staff</strong> for safe use.</li>
+</ul>
+<hr>
+<h2>1) Plan Outputs (What “Done” Looks Like)</h2>
+<ul>
+<li><input disabled="" type="checkbox"> A complete hierarchical plan (this document) with checklists</li>
+<li><input disabled="" type="checkbox"> Units <strong>1–9</strong> each have: lesson materials + safety briefing + setup/shutdown + assessment/checkoff + pilot + revisions</li>
+<li><input disabled="" type="checkbox"> Safety and supervision model defined and in use (aligned to max occupancy 30)</li>
+<li><input disabled="" type="checkbox"> Equipment inventory and maintenance system operating (owners + schedules + logs)</li>
+<li><input disabled="" type="checkbox"> A timeline and status tracker that supports finishing by <strong>August 2026</strong></li>
+</ul>
+<hr>
+<h2>2) Governance + Roles</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Confirm decision/approval path (who approves: safety rules, curriculum, space changes, purchases)</li>
+<li><input disabled="" type="checkbox"> Confirm role responsibilities<ul>
+<li><input disabled="" type="checkbox"> Kathy (PM): timeline, meeting cadence, risk log, approvals coordination, tracking</li>
+<li><input disabled="" type="checkbox"> Martha (Curriculum): unit design, lesson materials, assessments, training content</li>
+<li><input disabled="" type="checkbox"> Eric (Maintainer): equipment readiness, installation needs, maintenance plan, inspections</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Set meeting cadence<ul>
+<li><input disabled="" type="checkbox"> Weekly: execution check-in (30–45 minutes)</li>
+<li><input disabled="" type="checkbox"> Monthly: milestone review (status, risks, staffing, equipment, incidents)</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Create documentation structure (single shared location + naming conventions)</li>
+</ul>
+<hr>
+<h2>3) Space, Capacity (Max 30), and Supervision Model</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Define operating modes<ul>
+<li><input disabled="" type="checkbox"> Scheduled class</li>
+<li><input disabled="" type="checkbox"> Open lab (supervised)</li>
+<li><input disabled="" type="checkbox"> Project work time (supervised)</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Define supervision requirements by activity category (low/medium/high risk)</li>
+<li><input disabled="" type="checkbox"> Define staff coverage needs for each operating mode</li>
+<li><input disabled="" type="checkbox"> Define zoning (optional) and post max counts per zone</li>
+<li><input disabled="" type="checkbox"> Define “Stop Work” rule (any staff can pause activity for safety)</li>
+</ul>
+<hr>
+<h2>4) Safety + Procedures (Baseline for All Units)</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Draft Makerspace Safety Handbook</li>
+<li><input disabled="" type="checkbox"> Post signage<ul>
+<li><input disabled="" type="checkbox"> PPE requirements</li>
+<li><input disabled="" type="checkbox"> Machine rules</li>
+<li><input disabled="" type="checkbox"> Emergency procedures</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Define PPE list (baseline + per-machine)</li>
+<li><input disabled="" type="checkbox"> Define onboarding requirement (no machine use until safety onboarding completed)</li>
+<li><input disabled="" type="checkbox"> Define incident reporting process + incident log</li>
+<li><input disabled="" type="checkbox"> Define out-of-service procedure (tag + lockout where applicable)</li>
+<li><input disabled="" type="checkbox"> Emergency readiness<ul>
+<li><input disabled="" type="checkbox"> First aid kit stocked and accessible</li>
+<li><input disabled="" type="checkbox"> Fire extinguisher locations verified</li>
+<li><input disabled="" type="checkbox"> Clear paths/egress kept unobstructed</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2>5) Equipment Readiness + Maintenance System</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Inventory all machines/tools<ul>
+<li><input disabled="" type="checkbox"> Name, model, serial, condition, location, power/vent needs</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Identify installation and safety requirements (power, ventilation, dust collection, guarding)</li>
+<li><input disabled="" type="checkbox"> Create a standard “Machine Readiness Checklist” (template)</li>
+<li><input disabled="" type="checkbox"> Create preventative maintenance schedule<ul>
+<li><input disabled="" type="checkbox"> Owner</li>
+<li><input disabled="" type="checkbox"> Frequency</li>
+<li><input disabled="" type="checkbox"> Checklist</li>
+<li><input disabled="" type="checkbox"> Log location</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Create consumables list with minimum stock levels + reorder triggers</li>
+<li><input disabled="" type="checkbox"> Create machine sign-off list (who is trained/cleared)</li>
+</ul>
+<hr>
+<h2>6) Curriculum Framework (Applies to Units 1–9)</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Define learner audience(s) and prerequisites</li>
+<li><input disabled="" type="checkbox"> Define unit structure<ul>
+<li><input disabled="" type="checkbox"> Safety briefing</li>
+<li><input disabled="" type="checkbox"> Demo</li>
+<li><input disabled="" type="checkbox"> Guided practice</li>
+<li><input disabled="" type="checkbox"> Independent practice/project</li>
+<li><input disabled="" type="checkbox"> Skills check / sign-off</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Define assessment standards<ul>
+<li><input disabled="" type="checkbox"> Safety behaviors</li>
+<li><input disabled="" type="checkbox"> Tool/machine competency</li>
+<li><input disabled="" type="checkbox"> Project quality rubric (as applicable)</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Define documentation for each unit (unit packet)<ul>
+<li><input disabled="" type="checkbox"> Instructor guide</li>
+<li><input disabled="" type="checkbox"> Student handout</li>
+<li><input disabled="" type="checkbox"> Setup/shutdown checklists</li>
+<li><input disabled="" type="checkbox"> Assessment/checkoff sheet</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2>7) Unit Plans (1–9) — Build + Launch Checklists</h2>
+<p>Use the same structure for each unit for consistency.</p>
+<h3>Unit 1 — &lt;Unit 1 Name Placeholder&gt;</h3>
+<p><strong>Design</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Define unit objectives + scope</li>
+<li><input disabled="" type="checkbox"> Identify machines/tools used + required PPE</li>
+<li><input disabled="" type="checkbox"> Draft lesson plan(s) + slides/handouts</li>
+<li><input disabled="" type="checkbox"> Draft student activity/project</li>
+<li><input disabled="" type="checkbox"> Draft assessment/checkoff rubric</li>
+</ul>
+<p><strong>Operations</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Unit-specific safety briefing (5–10 minutes)</li>
+<li><input disabled="" type="checkbox"> Setup checklist (before class/lab)</li>
+<li><input disabled="" type="checkbox"> Shutdown checklist (after class/lab)</li>
+<li><input disabled="" type="checkbox"> Define supervision ratio and support staffing needs</li>
+</ul>
+<p><strong>Launch</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Pilot run (small group)</li>
+<li><input disabled="" type="checkbox"> Collect feedback (students + staff)</li>
+<li><input disabled="" type="checkbox"> Revise materials</li>
+<li><input disabled="" type="checkbox"> Publish unit packet</li>
+</ul>
+<h3>Unit 2 — &lt;Unit 2 Name Placeholder&gt;</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Design checklist completed</li>
+<li><input disabled="" type="checkbox"> Operations checklist completed</li>
+<li><input disabled="" type="checkbox"> Launch checklist completed</li>
+</ul>
+<h3>Unit 3 — &lt;Unit 3 Name Placeholder&gt;</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Design checklist completed</li>
+<li><input disabled="" type="checkbox"> Operations checklist completed</li>
+<li><input disabled="" type="checkbox"> Launch checklist completed</li>
+</ul>
+<h3>Unit 4 — &lt;Unit 4 Name Placeholder&gt;</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Design checklist completed</li>
+<li><input disabled="" type="checkbox"> Operations checklist completed</li>
+<li><input disabled="" type="checkbox"> Launch checklist completed</li>
+</ul>
+<h3>Unit 5 — &lt;Unit 5 Name Placeholder&gt;</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Design checklist completed</li>
+<li><input disabled="" type="checkbox"> Operations checklist completed</li>
+<li><input disabled="" type="checkbox"> Launch checklist completed</li>
+</ul>
+<h3>Unit 6 — &lt;Unit 6 Name Placeholder&gt;</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Design checklist completed</li>
+<li><input disabled="" type="checkbox"> Operations checklist completed</li>
+<li><input disabled="" type="checkbox"> Launch checklist completed</li>
+</ul>
+<h3>Unit 7 — &lt;Unit 7 Name Placeholder&gt;</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Design checklist completed</li>
+<li><input disabled="" type="checkbox"> Operations checklist completed</li>
+<li><input disabled="" type="checkbox"> Launch checklist completed</li>
+</ul>
+<h3>Unit 8 — &lt;Unit 8 Name Placeholder&gt;</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Design checklist completed</li>
+<li><input disabled="" type="checkbox"> Operations checklist completed</li>
+<li><input disabled="" type="checkbox"> Launch checklist completed</li>
+</ul>
+<h3>Unit 9 — &lt;Unit 9 Name Placeholder&gt;</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Design checklist completed</li>
+<li><input disabled="" type="checkbox"> Operations checklist completed</li>
+<li><input disabled="" type="checkbox"> Launch checklist completed</li>
+</ul>
+<hr>
+<h2>8) Staffing + Training (Instructional Support)</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Define instructional support staff role(s)</li>
+<li><input disabled="" type="checkbox"> Define coverage plan for operating hours</li>
+<li><input disabled="" type="checkbox"> Training plan<ul>
+<li><input disabled="" type="checkbox"> Makerspace-wide safety onboarding</li>
+<li><input disabled="" type="checkbox"> Machine-specific sign-offs</li>
+<li><input disabled="" type="checkbox"> Classroom/lab management</li>
+<li><input disabled="" type="checkbox"> Incident response and reporting</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Create staff clearance tracker (who is trained on what)</li>
+</ul>
+<hr>
+<h2>9) Timeline (Finish by August 2026)</h2>
+<p>Use this as the master schedule; adjust dates as needed while keeping the August 2026 end date.</p>
+<table>
+<thead>
+<tr>
+<th>Milestone</th>
+<th>Owner(s)</th>
+<th align="right">Target Date</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Plan finalized (this document)</td>
+<td>Kathy</td>
+<td align="right">Aug 2026</td>
+</tr>
+<tr>
+<td>Safety handbook + baseline procedures ready</td>
+<td>Martha + Eric</td>
+<td align="right"><Date></td>
+</tr>
+<tr>
+<td>Equipment inventory + readiness gap list complete</td>
+<td>Eric</td>
+<td align="right"><Date></td>
+</tr>
+<tr>
+<td>Unit 1 complete + piloted (most thorough)</td>
+<td>Martha</td>
+<td align="right"><Date></td>
+</tr>
+<tr>
+<td>Units 2–3 live</td>
+<td>Martha</td>
+<td align="right"><Date></td>
+</tr>
+<tr>
+<td>Units 4–6 live</td>
+<td>Martha</td>
+<td align="right"><Date></td>
+</tr>
+<tr>
+<td>Units 7–9 live</td>
+<td>Martha</td>
+<td align="right"><Date></td>
+</tr>
+<tr>
+<td>Full program review + revisions</td>
+<td>Kathy + Team</td>
+<td align="right"><Date></td>
+</tr>
+<tr>
+<td>Final readiness check + “v1.0” published</td>
+<td>Kathy</td>
+<td align="right">Aug 2026</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>10) Tracking (Status + Checkpoints)</h2>
+<h3>Unit Status Tracker</h3>
+<p>Status options: <code>Not started</code> / <code>Draft</code> / <code>Pilot</code> / <code>Live</code></p>
+<table>
+<thead>
+<tr>
+<th align="right">Unit</th>
+<th>Name</th>
+<th>Status</th>
+<th>Owner</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">1</td>
+<td>&lt;Unit 1 Name Placeholder&gt;</td>
+<td>Not started</td>
+<td>Martha</td>
+<td></td>
+</tr>
+<tr>
+<td align="right">2</td>
+<td>&lt;Unit 2 Name Placeholder&gt;</td>
+<td>Not started</td>
+<td>Martha</td>
+<td></td>
+</tr>
+<tr>
+<td align="right">3</td>
+<td>&lt;Unit 3 Name Placeholder&gt;</td>
+<td>Not started</td>
+<td>Martha</td>
+<td></td>
+</tr>
+<tr>
+<td align="right">4</td>
+<td>&lt;Unit 4 Name Placeholder&gt;</td>
+<td>Not started</td>
+<td>Martha</td>
+<td></td>
+</tr>
+<tr>
+<td align="right">5</td>
+<td>&lt;Unit 5 Name Placeholder&gt;</td>
+<td>Not started</td>
+<td>Martha</td>
+<td></td>
+</tr>
+<tr>
+<td align="right">6</td>
+<td>&lt;Unit 6 Name Placeholder&gt;</td>
+<td>Not started</td>
+<td>Martha</td>
+<td></td>
+</tr>
+<tr>
+<td align="right">7</td>
+<td>&lt;Unit 7 Name Placeholder&gt;</td>
+<td>Not started</td>
+<td>Martha</td>
+<td></td>
+</tr>
+<tr>
+<td align="right">8</td>
+<td>&lt;Unit 8 Name Placeholder&gt;</td>
+<td>Not started</td>
+<td>Martha</td>
+<td></td>
+</tr>
+<tr>
+<td align="right">9</td>
+<td>&lt;Unit 9 Name Placeholder&gt;</td>
+<td>Not started</td>
+<td>Martha</td>
+<td></td>
+</tr>
+</tbody></table>
+<h3>Monthly Checkpoint Checklist</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Review incident log and safety notes</li>
+<li><input disabled="" type="checkbox"> Review maintenance log and machine downtime</li>
+<li><input disabled="" type="checkbox"> Review staffing coverage and training sign-offs</li>
+<li><input disabled="" type="checkbox"> Review unit feedback and needed curriculum revisions</li>
+<li><input disabled="" type="checkbox"> Update timeline and unit status tracker</li>
+</ul>
+<hr>
+<h2>11) Risks + Mitigations</h2>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Impact</th>
+<th>Likelihood</th>
+<th>Mitigation</th>
+<th>Owner</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Occupancy exceeds safe supervision</td>
+<td>High</td>
+<td>Medium</td>
+<td>Enforce max 30, set ratios by activity, schedule high-risk activities</td>
+<td>Kathy</td>
+</tr>
+<tr>
+<td>Insufficient instructional support staff</td>
+<td>High</td>
+<td>Medium</td>
+<td>Coverage plan, cross-train staff, adjust operating modes/hours</td>
+<td>Kathy</td>
+</tr>
+<tr>
+<td>Equipment downtime blocks units</td>
+<td>Medium</td>
+<td>Medium</td>
+<td>Maintenance schedule, consumables minimums, readiness checks</td>
+<td>Eric</td>
+</tr>
+<tr>
+<td>Inconsistent safety onboarding</td>
+<td>High</td>
+<td>Medium</td>
+<td>Required onboarding + sign-off tracking before machine use</td>
+<td>Martha</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>12) Appendix — Templates (Copy/Paste)</h2>
+<h3>A) Machine Readiness Checklist (Template)</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Location and mounting stable</li>
+<li><input disabled="" type="checkbox"> Power requirements met</li>
+<li><input disabled="" type="checkbox"> Ventilation/dust collection functioning (if applicable)</li>
+<li><input disabled="" type="checkbox"> Guards/shields in place</li>
+<li><input disabled="" type="checkbox"> Emergency stop accessible and tested (if applicable)</li>
+<li><input disabled="" type="checkbox"> Operating instructions available at point of use</li>
+<li><input disabled="" type="checkbox"> PPE posted and available</li>
+<li><input disabled="" type="checkbox"> Test run completed</li>
+<li><input disabled="" type="checkbox"> Maintenance schedule posted and log started</li>
+</ul>
+<h3>B) Unit Packet Checklist (Template)</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Instructor guide</li>
+<li><input disabled="" type="checkbox"> Student handout</li>
+<li><input disabled="" type="checkbox"> Safety briefing script</li>
+<li><input disabled="" type="checkbox"> Setup checklist</li>
+<li><input disabled="" type="checkbox"> Shutdown checklist</li>
+<li><input disabled="" type="checkbox"> Assessment/checkoff</li>
+<li><input disabled="" type="checkbox"> Supplies list + prep notes</li>
+</ul>
+
+        </div>
+        <div class="footer">
+          <span>Saved locally in this browser</span>
+          <span id="foot">Checklist key: 20fb1c4c</span>
+        </div>
+      </div>
+
+      <details>
+        <summary>View source Markdown</summary>
+        <pre class="md"># SJDC Makerspace — Implementation Plan (Units 1–9)
+
+Target completion: **August 2026**
+
+Owners:
+- **Kathy** — Project Manager (PM)
+- **Martha** — Curriculum Lead
+- **Eric** — Maintainer (equipment/space)
+
+Primary constraint:
+- Makerspace includes multiple machines; **maximum occupancy 30**; operations require **instructional support staff** for safe use.
+
+---
+
+## 1) Plan Outputs (What “Done” Looks Like)
+
+- [ ] A complete hierarchical plan (this document) with checklists
+- [ ] Units **1–9** each have: lesson materials + safety briefing + setup/shutdown + assessment/checkoff + pilot + revisions
+- [ ] Safety and supervision model defined and in use (aligned to max occupancy 30)
+- [ ] Equipment inventory and maintenance system operating (owners + schedules + logs)
+- [ ] A timeline and status tracker that supports finishing by **August 2026**
+
+---
+
+## 2) Governance + Roles
+
+- [ ] Confirm decision/approval path (who approves: safety rules, curriculum, space changes, purchases)
+- [ ] Confirm role responsibilities
+  - [ ] Kathy (PM): timeline, meeting cadence, risk log, approvals coordination, tracking
+  - [ ] Martha (Curriculum): unit design, lesson materials, assessments, training content
+  - [ ] Eric (Maintainer): equipment readiness, installation needs, maintenance plan, inspections
+- [ ] Set meeting cadence
+  - [ ] Weekly: execution check-in (30–45 minutes)
+  - [ ] Monthly: milestone review (status, risks, staffing, equipment, incidents)
+- [ ] Create documentation structure (single shared location + naming conventions)
+
+---
+
+## 3) Space, Capacity (Max 30), and Supervision Model
+
+- [ ] Define operating modes
+  - [ ] Scheduled class
+  - [ ] Open lab (supervised)
+  - [ ] Project work time (supervised)
+- [ ] Define supervision requirements by activity category (low/medium/high risk)
+- [ ] Define staff coverage needs for each operating mode
+- [ ] Define zoning (optional) and post max counts per zone
+- [ ] Define “Stop Work” rule (any staff can pause activity for safety)
+
+---
+
+## 4) Safety + Procedures (Baseline for All Units)
+
+- [ ] Draft Makerspace Safety Handbook
+- [ ] Post signage
+  - [ ] PPE requirements
+  - [ ] Machine rules
+  - [ ] Emergency procedures
+- [ ] Define PPE list (baseline + per-machine)
+- [ ] Define onboarding requirement (no machine use until safety onboarding completed)
+- [ ] Define incident reporting process + incident log
+- [ ] Define out-of-service procedure (tag + lockout where applicable)
+- [ ] Emergency readiness
+  - [ ] First aid kit stocked and accessible
+  - [ ] Fire extinguisher locations verified
+  - [ ] Clear paths/egress kept unobstructed
+
+---
+
+## 5) Equipment Readiness + Maintenance System
+
+- [ ] Inventory all machines/tools
+  - [ ] Name, model, serial, condition, location, power/vent needs
+- [ ] Identify installation and safety requirements (power, ventilation, dust collection, guarding)
+- [ ] Create a standard “Machine Readiness Checklist” (template)
+- [ ] Create preventative maintenance schedule
+  - [ ] Owner
+  - [ ] Frequency
+  - [ ] Checklist
+  - [ ] Log location
+- [ ] Create consumables list with minimum stock levels + reorder triggers
+- [ ] Create machine sign-off list (who is trained/cleared)
+
+---
+
+## 6) Curriculum Framework (Applies to Units 1–9)
+
+- [ ] Define learner audience(s) and prerequisites
+- [ ] Define unit structure
+  - [ ] Safety briefing
+  - [ ] Demo
+  - [ ] Guided practice
+  - [ ] Independent practice/project
+  - [ ] Skills check / sign-off
+- [ ] Define assessment standards
+  - [ ] Safety behaviors
+  - [ ] Tool/machine competency
+  - [ ] Project quality rubric (as applicable)
+- [ ] Define documentation for each unit (unit packet)
+  - [ ] Instructor guide
+  - [ ] Student handout
+  - [ ] Setup/shutdown checklists
+  - [ ] Assessment/checkoff sheet
+
+---
+
+## 7) Unit Plans (1–9) — Build + Launch Checklists
+
+Use the same structure for each unit for consistency.
+
+### Unit 1 — &lt;Unit 1 Name Placeholder&gt;
+
+**Design**
+- [ ] Define unit objectives + scope
+- [ ] Identify machines/tools used + required PPE
+- [ ] Draft lesson plan(s) + slides/handouts
+- [ ] Draft student activity/project
+- [ ] Draft assessment/checkoff rubric
+
+**Operations**
+- [ ] Unit-specific safety briefing (5–10 minutes)
+- [ ] Setup checklist (before class/lab)
+- [ ] Shutdown checklist (after class/lab)
+- [ ] Define supervision ratio and support staffing needs
+
+**Launch**
+- [ ] Pilot run (small group)
+- [ ] Collect feedback (students + staff)
+- [ ] Revise materials
+- [ ] Publish unit packet
+
+### Unit 2 — &lt;Unit 2 Name Placeholder&gt;
+- [ ] Design checklist completed
+- [ ] Operations checklist completed
+- [ ] Launch checklist completed
+
+### Unit 3 — &lt;Unit 3 Name Placeholder&gt;
+- [ ] Design checklist completed
+- [ ] Operations checklist completed
+- [ ] Launch checklist completed
+
+### Unit 4 — &lt;Unit 4 Name Placeholder&gt;
+- [ ] Design checklist completed
+- [ ] Operations checklist completed
+- [ ] Launch checklist completed
+
+### Unit 5 — &lt;Unit 5 Name Placeholder&gt;
+- [ ] Design checklist completed
+- [ ] Operations checklist completed
+- [ ] Launch checklist completed
+
+### Unit 6 — &lt;Unit 6 Name Placeholder&gt;
+- [ ] Design checklist completed
+- [ ] Operations checklist completed
+- [ ] Launch checklist completed
+
+### Unit 7 — &lt;Unit 7 Name Placeholder&gt;
+- [ ] Design checklist completed
+- [ ] Operations checklist completed
+- [ ] Launch checklist completed
+
+### Unit 8 — &lt;Unit 8 Name Placeholder&gt;
+- [ ] Design checklist completed
+- [ ] Operations checklist completed
+- [ ] Launch checklist completed
+
+### Unit 9 — &lt;Unit 9 Name Placeholder&gt;
+- [ ] Design checklist completed
+- [ ] Operations checklist completed
+- [ ] Launch checklist completed
+
+---
+
+## 8) Staffing + Training (Instructional Support)
+
+- [ ] Define instructional support staff role(s)
+- [ ] Define coverage plan for operating hours
+- [ ] Training plan
+  - [ ] Makerspace-wide safety onboarding
+  - [ ] Machine-specific sign-offs
+  - [ ] Classroom/lab management
+  - [ ] Incident response and reporting
+- [ ] Create staff clearance tracker (who is trained on what)
+
+---
+
+## 9) Timeline (Finish by August 2026)
+
+Use this as the master schedule; adjust dates as needed while keeping the August 2026 end date.
+
+| Milestone | Owner(s) | Target Date |
+|---|---|---:|
+| Plan finalized (this document) | Kathy | Aug 2026 |
+| Safety handbook + baseline procedures ready | Martha + Eric | &lt;Date&gt; |
+| Equipment inventory + readiness gap list complete | Eric | &lt;Date&gt; |
+| Unit 1 complete + piloted (most thorough) | Martha | &lt;Date&gt; |
+| Units 2–3 live | Martha | &lt;Date&gt; |
+| Units 4–6 live | Martha | &lt;Date&gt; |
+| Units 7–9 live | Martha | &lt;Date&gt; |
+| Full program review + revisions | Kathy + Team | &lt;Date&gt; |
+| Final readiness check + “v1.0” published | Kathy | Aug 2026 |
+
+---
+
+## 10) Tracking (Status + Checkpoints)
+
+### Unit Status Tracker
+
+Status options: `Not started` / `Draft` / `Pilot` / `Live`
+
+| Unit | Name | Status | Owner | Notes |
+|---:|---|---|---|---|
+| 1 | &lt;Unit 1 Name Placeholder&gt; | Not started | Martha | |
+| 2 | &lt;Unit 2 Name Placeholder&gt; | Not started | Martha | |
+| 3 | &lt;Unit 3 Name Placeholder&gt; | Not started | Martha | |
+| 4 | &lt;Unit 4 Name Placeholder&gt; | Not started | Martha | |
+| 5 | &lt;Unit 5 Name Placeholder&gt; | Not started | Martha | |
+| 6 | &lt;Unit 6 Name Placeholder&gt; | Not started | Martha | |
+| 7 | &lt;Unit 7 Name Placeholder&gt; | Not started | Martha | |
+| 8 | &lt;Unit 8 Name Placeholder&gt; | Not started | Martha | |
+| 9 | &lt;Unit 9 Name Placeholder&gt; | Not started | Martha | |
+
+### Monthly Checkpoint Checklist
+
+- [ ] Review incident log and safety notes
+- [ ] Review maintenance log and machine downtime
+- [ ] Review staffing coverage and training sign-offs
+- [ ] Review unit feedback and needed curriculum revisions
+- [ ] Update timeline and unit status tracker
+
+---
+
+## 11) Risks + Mitigations
+
+| Risk | Impact | Likelihood | Mitigation | Owner |
+|---|---|---|---|---|
+| Occupancy exceeds safe supervision | High | Medium | Enforce max 30, set ratios by activity, schedule high-risk activities | Kathy |
+| Insufficient instructional support staff | High | Medium | Coverage plan, cross-train staff, adjust operating modes/hours | Kathy |
+| Equipment downtime blocks units | Medium | Medium | Maintenance schedule, consumables minimums, readiness checks | Eric |
+| Inconsistent safety onboarding | High | Medium | Required onboarding + sign-off tracking before machine use | Martha |
+
+---
+
+## 12) Appendix — Templates (Copy/Paste)
+
+### A) Machine Readiness Checklist (Template)
+
+- [ ] Location and mounting stable
+- [ ] Power requirements met
+- [ ] Ventilation/dust collection functioning (if applicable)
+- [ ] Guards/shields in place
+- [ ] Emergency stop accessible and tested (if applicable)
+- [ ] Operating instructions available at point of use
+- [ ] PPE posted and available
+- [ ] Test run completed
+- [ ] Maintenance schedule posted and log started
+
+### B) Unit Packet Checklist (Template)
+
+- [ ] Instructor guide
+- [ ] Student handout
+- [ ] Safety briefing script
+- [ ] Setup checklist
+- [ ] Shutdown checklist
+- [ ] Assessment/checkoff
+- [ ] Supplies list + prep notes
+</pre>
+      </details>
+    </div>
+
+    <script>
+      (function () {
+        var mdHash = "20fb1c4c";
+        var storageKey = "SJDC_Makerspace_Implementation_Plan:checkboxes:" + mdHash;
+
+        function slugify(text) {
+          return String(text)
+            .toLowerCase()
+            .replace(/&/g, "and")
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "");
+        }
+
+        function loadState() {
+          try {
+            var raw = localStorage.getItem(storageKey);
+            if (!raw) return {};
+            var parsed = JSON.parse(raw);
+            return parsed && typeof parsed === "object" ? parsed : {};
+          } catch (_) {
+            return {};
+          }
+        }
+
+        function saveState(state) {
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(state));
+          } catch (_) {}
+        }
+
+        var content = document.getElementById("content");
+
+        // Add stable heading anchors
+        (function addHeadingAnchors() {
+          var used = Object.create(null);
+          var headings = content.querySelectorAll("h1, h2, h3");
+          for (var i = 0; i < headings.length; i++) {
+            var h = headings[i];
+            var base = slugify(h.textContent);
+            if (!base) continue;
+            var id = base;
+            var n = 2;
+            while (used[id]) {
+              id = base + "-" + n;
+              n++;
+            }
+            used[id] = true;
+            if (!h.id) h.id = id;
+
+            var a = document.createElement("a");
+            a.className = "heading-anchor";
+            a.href = "#" + h.id;
+            a.textContent = "#";
+            a.setAttribute("aria-label", "Link to section " + h.textContent);
+            h.appendChild(a);
+          }
+        })();
+
+        // Enable task list checkboxes rendered by marked
+        var state = loadState();
+        var boxes = content.querySelectorAll("input[type=checkbox]");
+        var taskIndex = 0;
+        for (var i = 0; i < boxes.length; i++) {
+          var box = boxes[i];
+          box.disabled = false;
+
+          var li = box.closest("li");
+          if (li) li.classList.add("task-item");
+
+          var key = String(taskIndex);
+          box.setAttribute("data-task-key", key);
+          if (state[key] === true) box.checked = true;
+          if (li && box.checked) li.classList.add("checked");
+
+          (function attach(boxEl, liEl, k) {
+            boxEl.addEventListener("change", function () {
+              state[k] = !!boxEl.checked;
+              saveState(state);
+              if (liEl) {
+                if (boxEl.checked) liEl.classList.add("checked");
+                else liEl.classList.remove("checked");
+              }
+            });
+          })(box, li, key);
+
+          if (li && box.parentElement === li) {
+            var label = document.createElement("label");
+            li.insertBefore(label, box);
+            label.appendChild(box);
+
+            // Move only the immediate text/inline nodes into the label.
+            // Do not swallow nested UL/OL (keeps structure valid and readable).
+            while (label.nextSibling) {
+              var n = label.nextSibling;
+              if (n.nodeType === 1) {
+                var tag = n.tagName;
+                if (tag === "UL" || tag === "OL") break;
+              }
+              label.appendChild(n);
+            }
+          }
+
+          taskIndex++;
+        }
+
+        document.getElementById("print").addEventListener("click", function () {
+          window.print();
+        });
+
+        document.getElementById("reset").addEventListener("click", function () {
+          try { localStorage.removeItem(storageKey); } catch (_) {}
+          state = {};
+          for (var j = 0; j < boxes.length; j++) {
+            boxes[j].checked = false;
+            var li = boxes[j].closest("li");
+            if (li) li.classList.remove("checked");
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
